@@ -213,7 +213,10 @@ public class ExceptionListController {
 			String processId = exceptionManagementService.getProcessId(assignGroup.get("exceptionId"));
 			assignGroup.put("type", "candidate");
 			assignGroup.remove("exceptionId");
-			String externalApiUrl = "http://"+ ipAddress +":8080/engine-rest/task/" + processId + "/identity-links";
+			String taskId = exceptionManagementService.fetchTaskId(processId);
+			System.out.println("process id is " + processId);
+			System.out.println("task id is " + taskId);
+			String externalApiUrl = "http://"+ ipAddress +":8080/engine-rest/task/" + taskId + "/identity-links";
 			//String externalApiUrl = "https://jsonplaceholder.typicode.com/posts";
 			String assignGroupJson = exceptionManagementService.mapToJson(assignGroup);
 			System.out.println("in assignGroup Controller");
@@ -399,8 +402,8 @@ public class ExceptionListController {
 		}
 }
 	
-    @PostMapping("/updateTemaAttribute/{exceptionId}")
-    public ResponseEntity<?> updateTemaAttribute(@PathVariable String exceptionId, @RequestBody String resolutionCount) {
+    @PostMapping("/updateResolutionCount/{exceptionId}")
+    public ResponseEntity<?> updateResolutionCount(@PathVariable String exceptionId, @RequestBody String resolutionCount) {
         try {
             exceptionManagementService.updateResolutionCount(exceptionId, resolutionCount);
             return ResponseEntity.ok("Attribute updated successfully");
