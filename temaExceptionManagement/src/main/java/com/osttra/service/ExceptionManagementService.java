@@ -22,6 +22,8 @@ import com.osttra.repository.database2.TemaMongoRepository;
 
 @Service
 public class ExceptionManagementService {
+	
+	String ipAddress = "10.196.22.55";
 
 	@Autowired
 	private SourceMongoRepository sourceMongoRepository;
@@ -43,7 +45,6 @@ public class ExceptionManagementService {
 //	}
 
 	public SourceMongoEntity addExceptionInSource(SourceMongoEntity sourceData) {
-
 		return sourceMongoRepository.save(sourceData);
 	}
 //    
@@ -189,6 +190,7 @@ public class ExceptionManagementService {
 		temaExceptionEntity.setUpdatedBy(sourceEntity.getUpdatedBy());
 		temaExceptionEntity.setUpdatedAt(sourceEntity.getUpdatedAt());
 		temaExceptionEntity.setAssign("ASSIGN");
+		temaExceptionEntity.setResolutionCount("0");
 		return temaExceptionEntity;
 	}
 
@@ -217,7 +219,7 @@ public class ExceptionManagementService {
 			e.printStackTrace();
 		}
 
-		String externalApiUrl = "http://10.196.22.55:8080/engine-rest/process-definition/key/ApprovalProcess/start";
+		String externalApiUrl = "http://"+ ipAddress +":8080/engine-rest/process-definition/key/ApprovalProcess/start";
 //		HttpHeaders headers = new HttpHeaders();
 //		headers.setContentType(MediaType.APPLICATION_JSON);
 //		HttpEntity<String> requestEntity = new HttpEntity<>(exceptionIdJson, headers);
@@ -244,7 +246,6 @@ public class ExceptionManagementService {
 			e.printStackTrace();
 			return null;
 		}
-
 		String processId = jsonResponse.get("id").asText();
 		return processId;
 	}
@@ -258,15 +259,15 @@ public class ExceptionManagementService {
 		}
 	}
 
-//	public String StringtoJson(String data) {
-//		try {
-//			ObjectMapper objectMapper = new ObjectMapper();
-//			return objectMapper.writeValueAsString(data);
-//		} catch (JsonProcessingException e) {
-//			e.printStackTrace();
-//			return null;
-//		}
-//	}
+	public String stringtoJson(String data) {
+		try {
+			ObjectMapper objectMapper = new ObjectMapper();
+			return objectMapper.writeValueAsString(data);
+		} catch (JsonProcessingException e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
 
 //	public Optional<TemaMongoEntity> getExceptionDetails(String exceptionId) {
 //		try {
@@ -302,7 +303,7 @@ public class ExceptionManagementService {
 
 	public void updateExceptionStatus(TemaMongoEntity exception) {
 		String processId = exception.getProcessId();
-		String externalApiUrl = "http://10.196.22.55:8080/engine-rest/history/activity-instance?processInstanceId="
+		String externalApiUrl = "http://"+ ipAddress +":8080/engine-rest/history/activity-instance?processInstanceId="
 				+ processId + "&sortBy=startTime&sortOrder=desc";
 		ResponseEntity<String> response = restTemplate.getForEntity(externalApiUrl, String.class);
 //		Map<String, String> mapProcessId = Collections.singletonMap("processId", processId);
@@ -311,6 +312,7 @@ public class ExceptionManagementService {
 //		ResponseEntity<String> response = postJsonToExternalApi(externalApiUrl, ProcessIdJson);
 		String status = getExceptionStatus(response);
 		exception.setStatus(status);
+		if(status!= "open") exception.setAssign("ASSIGNED");
 		temaMongoRepository.save(exception);
 	}
 
@@ -350,7 +352,7 @@ public class ExceptionManagementService {
 					if (assigneeNode != null) {
 						if (activity == "4-Eye check")
 							status = "Resolved";
-						else if (activity == "Complete")
+						else if (activity == "noneEndEvent")
 							status = "Closed";
 						else
 							status = "Pending";
@@ -378,12 +380,6 @@ public class ExceptionManagementService {
         }
     }
 
-
-	public List<TemaMongoEntity> getExceptionListForUser(String userId) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
 	public List<Map<String, Object>> getExceptionHistory(String exceptionId) {
 		Optional<TemaMongoEntity> exceptionOptional = temaMongoRepository.findById(exceptionId);
 
@@ -395,8 +391,8 @@ public class ExceptionManagementService {
 			System.out.println(exception);
 		}
 		String processId = exception.getProcessId();
-		String externalApiUrl = "http://192.168.18.20:8080/engine-rest/history/activity-instance?processInstanceId="
-				+ processId + "&sortBy=startTime&sortOrder=desc";
+		String externalApiUrl ="http://"+ ipAddress +":8080/engine-rest/history/task?processInstanceId="
+				+ processId;
 		ResponseEntity<String> response = restTemplate.getForEntity(externalApiUrl, String.class);
 		String responseBody = response.getBody();
 		
@@ -412,7 +408,8 @@ public class ExceptionManagementService {
 	                for (JsonNode jsonObject : jsonArray) {
 	                	System.out.println(" ---------------its working------------------");
 	                    // Extract the required attributes
-	                    String taskName = jsonObject.get("activityName").asText();
+	                    String taskName = jsonObject.get("name").asText();
+	                    String taskId = jsonObject.get("id").asText();
 	                    System.out.println(taskName);
 	                    String user = jsonObject.get("assignee").asText();
 	                    String startTime = jsonObject.get("startTime").asText();
@@ -420,19 +417,48 @@ public class ExceptionManagementService {
 	                    // Create a map for the extracted object
 	                    Map<String, Object> extractedObject = new HashMap<>();
 	                    extractedObject.put("taskName", taskName);
+	                    extractedObject.put("taskId", taskId);
 	                    extractedObject.put("user", user);
 	                    extractedObject.put("startTime", startTime);
 	                    extractedObject.put("endTime", endTime);
 
 	                    historyList.add(extractedObject);
 	                }
-	            }
-			
+	            }	
 		} catch (Exception e) {
 			e.printStackTrace();
 		}	
        return historyList;  
 				
 	}
+	
+	public String fetchTaskId(String processId) {
+		String externalApiUrl = "http://"+ ipAddress +":8080/engine-rest/history/activity-instance?processInstanceId=" + processId + "&sortBy=startTime&sortOrder=desc";
+		ResponseEntity<String> response = restTemplate.getForEntity(externalApiUrl, String.class);
+		String responseBody = response.getBody();
+		String taskId = null;
+		if (responseBody != null) {
+			ObjectMapper objectMapper = new ObjectMapper();
+			try {
+				JsonNode  jsonArray = objectMapper.readTree(responseBody);
+				if (jsonArray.isArray() && jsonArray.size() > 0) {
+					JsonNode firstObject = jsonArray.get(0);
+					JsonNode taskIdNode = firstObject.get("taskId");
+					 taskId = taskIdNode.asText();
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+			} 	
+		}
+		return taskId;
+	}
 
+	public void updateResolutionCount(String exceptionId, String resolutionCount) {
+		   TemaMongoEntity entity = temaMongoRepository.findById(exceptionId).orElse(null);
+	        if (entity != null) {
+	            entity.setResolutionCount(resolutionCount);
+	            temaMongoRepository.save(entity);
+	        }
+		
+	}
 }
