@@ -9,10 +9,10 @@ import com.mongodb.client.MongoClients;
 
 @Configuration
 @EnableMongoRepositories(
-	    basePackages = "com.osttra.repository.database2", // Specify the package for Database 2 repositories
+	    basePackages = "com.osttra.repository.temaDatabase", // Specify the package for Database 2 repositories
 	    mongoTemplateRef = "mongoTemplate2"
 	)
-public class Database2Config {
+public class TemaDatabaseConfig {
 
 	 @Bean(name = "mongoTemplate2")
 	    public MongoTemplate mongoTemplate2() {

@@ -17,7 +17,7 @@ import lombok.ToString;
 @NoArgsConstructor
 @ToString
 @Document(collection="mongodata")
-public class TemaMongoEntity {
+public class TemaExceptionEntity {
 	   @Id
 	    private String exceptionId;
 	    private String tradeId;

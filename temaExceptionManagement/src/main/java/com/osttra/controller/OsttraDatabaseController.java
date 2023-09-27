@@ -11,8 +11,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
 
-import com.osttra.entity.SourceMongoEntity;
-import com.osttra.service.ExceptionManagementService;
+import com.osttra.entity.SourceExceptionEntity;
+import com.osttra.service.ExceptionManagementServiceImp;
 
 
 @RestController
@@ -20,7 +20,7 @@ import com.osttra.service.ExceptionManagementService;
 public class OsttraDatabaseController {
 
 	@Autowired
-	ExceptionManagementService exceptionMigrationService;
+	ExceptionManagementServiceImp exceptionMigrationService;
 
 	@Autowired
 	RestTemplate restTemplate;
@@ -29,9 +29,9 @@ public class OsttraDatabaseController {
 	@GetMapping("/get")
 	public ResponseEntity<?> getAllFromSource() {
 		try {
-			List<SourceMongoEntity> mongoData = exceptionMigrationService.getAllFromSource();
+			List<SourceExceptionEntity> mongoData = exceptionMigrationService.getAllFromSource();
 			if (mongoData.size() > 0) {
-				return new ResponseEntity<List<SourceMongoEntity>>(mongoData, HttpStatus.OK);
+				return new ResponseEntity<List<SourceExceptionEntity>>(mongoData, HttpStatus.OK);
 			} else {
 				return new ResponseEntity<>("Data not available", HttpStatus.NOT_FOUND);
 			}
@@ -43,9 +43,9 @@ public class OsttraDatabaseController {
 	}
 
 	@PostMapping("/create")
-	public ResponseEntity<?> create(@RequestBody SourceMongoEntity mongoData) {
+	public ResponseEntity<?> create(@RequestBody SourceExceptionEntity mongoData) {
 		try {
-			SourceMongoEntity createdData = exceptionMigrationService.addExceptionInSource(mongoData);
+			SourceExceptionEntity createdData = exceptionMigrationService.addExceptionInSource(mongoData);
 			return ResponseEntity.ok(createdData);
 		} catch (Exception e) {
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)

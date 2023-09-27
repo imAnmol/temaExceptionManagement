@@ -19,9 +19,9 @@ import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestTemplate;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.osttra.entity.TemaMongoEntity;
-import com.osttra.repository.database2.TemaMongoRepository;
-import com.osttra.service.ExceptionManagementService;
+import com.osttra.entity.TemaExceptionEntity;
+import com.osttra.repository.temaDatabase.TemaExceptionRepository;
+import com.osttra.service.ExceptionManagementServiceImp;
 
 
 @RestController
@@ -32,10 +32,10 @@ public class ExceptionListController {
 	String ipAddress = "10.196.22.55";
 	
 	@Autowired
-	ExceptionManagementService exceptionManagementService;
+	ExceptionManagementServiceImp exceptionManagementServiceImp;
 
 	@Autowired
-	TemaMongoRepository temaMongoRepository;
+	TemaExceptionRepository temaExceptionRepository;
 
  
 
@@ -46,9 +46,9 @@ public class ExceptionListController {
 	@GetMapping("/getAllExceptions")
 	public ResponseEntity<?> getAllExceptionList() {
 		try {
-			List<TemaMongoEntity> mongoData = exceptionManagementService.showAllException();
+			List<TemaExceptionEntity> mongoData = exceptionManagementServiceImp.showAllException();
 			if (mongoData.size() > 0) {
-				return new ResponseEntity<List<TemaMongoEntity>>(mongoData, HttpStatus.OK);
+				return new ResponseEntity<List<TemaExceptionEntity>>(mongoData, HttpStatus.OK);
 			} else {
 				return new ResponseEntity<>("Data not available", HttpStatus.NOT_FOUND);
 			}
@@ -61,12 +61,12 @@ public class ExceptionListController {
 	
 	@DeleteMapping("/deleteAllSource")
     public void deleteAllItemsSource() {
-		exceptionManagementService.deleteAllItemsSource();
+		exceptionManagementServiceImp.deleteAllItemsSource();
     }
 	
 	@DeleteMapping("/deleteAllTema")
     public void deleteAllItemsTema() {
-		exceptionManagementService.deleteAllItemsTema();
+		exceptionManagementServiceImp.deleteAllItemsTema();
     }
 	
 	
@@ -83,15 +83,15 @@ public class ExceptionListController {
 //        String responseBody = response.getBody();
 //        System.out.println("API Response: " + responseBody);
         
-        List<TemaMongoEntity> matchingExceptions = new ArrayList<>();   
+        List<TemaExceptionEntity> matchingExceptions = new ArrayList<>();   
         for (JsonNode item : apiDataArray1) {
             if (item.has("processInstanceId")) {
                 String processInstanceIdFromApi = item.get("processInstanceId").asText();
-                TemaMongoEntity matchingException = temaMongoRepository.findByProcessId(processInstanceIdFromApi);
+                TemaExceptionEntity matchingException = temaExceptionRepository.findByProcessId(processInstanceIdFromApi);
                 
                 if (matchingException != null) {
                 	System.out.println(matchingException);
-                	exceptionManagementService.updateExceptionStatus(matchingException);
+                	exceptionManagementServiceImp.updateExceptionStatus(matchingException);
                     matchingExceptions.add(matchingException);
                 }
             }
@@ -110,11 +110,11 @@ public class ExceptionListController {
         for (JsonNode item : apiDataArray2) {
             if (item.has("processInstanceId")) {
                 String processInstanceIdFromApi = item.get("processInstanceId").asText();
-                TemaMongoEntity matchingException = temaMongoRepository.findByProcessId(processInstanceIdFromApi);
+                TemaExceptionEntity matchingException = temaExceptionRepository.findByProcessId(processInstanceIdFromApi);
                 
                 if (matchingException != null) {
                 	System.out.println(matchingException);
-                	exceptionManagementService.updateExceptionStatus(matchingException);
+                	exceptionManagementServiceImp.updateExceptionStatus(matchingException);
                     matchingExceptions.add(matchingException);
                 }
             }
@@ -141,18 +141,18 @@ public class ExceptionListController {
         String responseBody = response.getBody();
         System.out.println("API Response: " + responseBody);
         
-        List<TemaMongoEntity> matchingExceptions = new ArrayList<>();
+        List<TemaExceptionEntity> matchingExceptions = new ArrayList<>();
 
         
         for (JsonNode item : apiDataArray) {
             if (item.has("processInstanceId")) {
                 String processInstanceIdFromApi = item.get("processInstanceId").asText();
                 
-                TemaMongoEntity matchingException =   temaMongoRepository.findByProcessId(processInstanceIdFromApi);
+                TemaExceptionEntity matchingException =   temaExceptionRepository.findByProcessId(processInstanceIdFromApi);
                 
                 if (matchingException != null) {
                 	System.out.println(matchingException);
-                	exceptionManagementService.updateExceptionStatus(matchingException);
+                	exceptionManagementServiceImp.updateExceptionStatus(matchingException);
                     matchingExceptions.add(matchingException);
                 }
             }
@@ -175,7 +175,7 @@ public class ExceptionListController {
 
             else {
                 
-                List<TemaMongoEntity> matchingExceptions = new ArrayList<>();
+                List<TemaExceptionEntity> matchingExceptions = new ArrayList<>();
                 
                 for (JsonNode item : apiDataArray) {
                 	
@@ -192,7 +192,7 @@ public class ExceptionListController {
                             	  
                                   String processInstanceIdFromApi = item2.get("processInstanceId").asText();
                                   
-                                  TemaMongoEntity matchingException = temaMongoRepository.findByProcessId(processInstanceIdFromApi);
+                                  TemaExceptionEntity matchingException = temaExceptionRepository.findByProcessId(processInstanceIdFromApi);
 
                                   if (matchingException != null) {
                                       System.out.println(matchingException);
@@ -224,7 +224,7 @@ public class ExceptionListController {
 
             else {
                 
-                List<TemaMongoEntity> matchingExceptions = new ArrayList<>();
+                List<TemaExceptionEntity> matchingExceptions = new ArrayList<>();
                 
                 for (JsonNode item : apiDataArray) {
                 	
@@ -241,7 +241,7 @@ public class ExceptionListController {
                             	  
                                   String processInstanceIdFromApi = item2.get("processInstanceId").asText();
                                   
-                                  TemaMongoEntity matchingException = temaMongoRepository.findByProcessId(processInstanceIdFromApi);
+                                  TemaExceptionEntity matchingException = temaExceptionRepository.findByProcessId(processInstanceIdFromApi);
 
                                   if (matchingException != null) {
                                       System.out.println(matchingException);
@@ -270,9 +270,9 @@ public class ExceptionListController {
 
 		try {
 
-			String processId = exceptionManagementService.getProcessId(assignGroup.get("exceptionId"));
+			String processId = exceptionManagementServiceImp.getProcessId(assignGroup.get("exceptionId"));
 
-			String taskId = exceptionManagementService.fetchTaskId(processId);
+			String taskId = exceptionManagementServiceImp.fetchTaskId(processId);
 
 			System.out.println(taskId);
 
@@ -282,7 +282,7 @@ public class ExceptionListController {
 
 			System.out.println("process id is " + processId);
 
-			exceptionManagementService.deleteOtherUser(taskId);
+			exceptionManagementServiceImp.deleteOtherUser(taskId);
 
 			System.out.println("task id is " + taskId);
 
@@ -290,7 +290,7 @@ public class ExceptionListController {
 
 			//String externalApiUrl = "https://jsonplaceholder.typicode.com/posts";
 
-			String assignGroupJson = exceptionManagementService.mapToJson(assignGroup);
+			String assignGroupJson = exceptionManagementServiceImp.mapToJson(assignGroup);
 			System.out.println(assignGroupJson);
 
 			System.out.println("in assignGroup Controller");
@@ -307,7 +307,7 @@ public class ExceptionListController {
 
 		
 
-			ResponseEntity<String> response = exceptionManagementService.postJsonToExternalApi(externalApiUrl, assignGroupJson);
+			ResponseEntity<String> response = exceptionManagementServiceImp.postJsonToExternalApi(externalApiUrl, assignGroupJson);
 
 			
 
@@ -350,11 +350,11 @@ public class ExceptionListController {
 			System.out.print(assignUser);
 			System.out.print(assignUser.get("exceptionId"));
 			System.out.print(assignUser.get("userId"));
-			String processId = exceptionManagementService.getProcessId(assignUser.get("exceptionId"));
-			String taskId = exceptionManagementService.fetchTaskId(processId);
+			String processId = exceptionManagementServiceImp.getProcessId(assignUser.get("exceptionId"));
+			String taskId = exceptionManagementServiceImp.fetchTaskId(processId);
 			assignUser.remove("exceptionId");
 			String externalApiUrl = "http://"+ ipAddress +":8080/engine-rest/task/" + taskId + "/claim";
-			String assignUserJson = exceptionManagementService.mapToJson(assignUser);
+			String assignUserJson = exceptionManagementServiceImp.mapToJson(assignUser);
 			System.out.println(assignUserJson);
 
 //			HttpHeaders headers = new org.springframework.http.HttpHeaders();
@@ -362,7 +362,7 @@ public class ExceptionListController {
 //			HttpEntity<String> requestEntity = new HttpEntity<>(assignUserJson, headers);
 //			ResponseEntity<String> response = restTemplate.postForEntity(externalApiUrl, requestEntity, String.class);
 			
-			ResponseEntity<String> response = exceptionManagementService.postJsonToExternalApi(externalApiUrl, assignUserJson);
+			ResponseEntity<String> response = exceptionManagementServiceImp.postJsonToExternalApi(externalApiUrl, assignUserJson);
 			
 			if (response.getStatusCode().is2xxSuccessful()) {
 				System.out.println(assignUserJson);
@@ -386,13 +386,13 @@ public class ExceptionListController {
 	public ResponseEntity<?> completedFourEyeCheckUp(@RequestBody Map<String, String> exceptionId) {
 		try {
 			// String externalApiUrl = "https://jsonplaceholder.typicode.com/posts";
-			String processId = exceptionManagementService.getProcessId(exceptionId.get("exceptionId"));
-			String taskId = exceptionManagementService.fetchTaskId(processId);
+			String processId = exceptionManagementServiceImp.getProcessId(exceptionId.get("exceptionId"));
+			String taskId = exceptionManagementServiceImp.fetchTaskId(processId);
 			String externalApiUrl = "http://"+ ipAddress +":8080/engine-rest/task/" + taskId + "/complete";
 			System.out.println("task id :" + taskId);
 			String jsonString =  "{ \"variables\": { \"i\": { \"value\": 0 } } }";
 			System.out.println(jsonString);
-			 ResponseEntity<String> response = exceptionManagementService.postJsonToExternalApi(externalApiUrl,jsonString);
+			 ResponseEntity<String> response = exceptionManagementServiceImp.postJsonToExternalApi(externalApiUrl,jsonString);
 			if (response.getStatusCode().is2xxSuccessful()) {
 				return ResponseEntity.ok("Group to Four Eye Check done !!!");
 			} else {
@@ -426,7 +426,7 @@ public class ExceptionListController {
     public ResponseEntity<?> getExceptionDetail(@PathVariable String exceptionId) {
         try {
         	System.out.println(" inside get exception details"+ exceptionId);
-            TemaMongoEntity exceptionDetails = exceptionManagementService.getExceptionDetails(exceptionId);
+            TemaExceptionEntity exceptionDetails = exceptionManagementServiceImp.getExceptionDetails(exceptionId);
             if (exceptionDetails != null) {
                 return ResponseEntity.ok(exceptionDetails);
             } else {
@@ -441,7 +441,7 @@ public class ExceptionListController {
     public ResponseEntity<?> getExceptionHistory(@PathVariable String exceptionId) {
         try {
         	System.out.println(" inside get exception details"+ exceptionId);
-        	List<Map<String, Object>> exceptionHistory = exceptionManagementService.getExceptionHistory(exceptionId);
+        	List<Map<String, Object>> exceptionHistory = exceptionManagementServiceImp.getExceptionHistory(exceptionId);
         	if (exceptionHistory.size() > 0) {
 				return new ResponseEntity<List<Map<String, Object>>>(exceptionHistory, HttpStatus.OK);
 			} else {
@@ -457,13 +457,13 @@ public class ExceptionListController {
 	public ResponseEntity<?> groupToFourEyeCheck(@RequestBody Map<String, String> exceptionId) {
 		try {
 			// String externalApiUrl = "https://jsonplaceholder.typicode.com/posts";
-			String processId = exceptionManagementService.getProcessId(exceptionId.get("exceptionId"));
-			String taskId = exceptionManagementService.fetchTaskId(processId);
+			String processId = exceptionManagementServiceImp.getProcessId(exceptionId.get("exceptionId"));
+			String taskId = exceptionManagementServiceImp.fetchTaskId(processId);
 			String externalApiUrl = "http://"+ ipAddress +":8080/engine-rest/task/" + taskId + "/complete";
 			System.out.println("task id :" + taskId);
 			String jsonString =  "{ \"variables\": { \"i\": { \"value\": 0 } } }";
 			System.out.println(jsonString);
-			 ResponseEntity<String> response = exceptionManagementService.postJsonToExternalApi(externalApiUrl,jsonString);
+			 ResponseEntity<String> response = exceptionManagementServiceImp.postJsonToExternalApi(externalApiUrl,jsonString);
 			if (response.getStatusCode().is2xxSuccessful()) {
 				return ResponseEntity.ok("Group to Four Eye Check done !!!");
 			} else {
@@ -482,13 +482,13 @@ public class ExceptionListController {
 	public ResponseEntity<?> groupToEscalation(@RequestBody Map<String, String> exceptionId) {
 		try {
 			// String externalApiUrl = "https://jsonplaceholder.typicode.com/posts";
-			String processId = exceptionManagementService.getProcessId(exceptionId.get("exceptionId"));
-			String taskId = exceptionManagementService.fetchTaskId(processId);
+			String processId = exceptionManagementServiceImp.getProcessId(exceptionId.get("exceptionId"));
+			String taskId = exceptionManagementServiceImp.fetchTaskId(processId);
 			String externalApiUrl = "http://"+ ipAddress +":8080/engine-rest/task/" + taskId + "/complete";
 			System.out.println("task id :" + taskId);
 			String jsonString =  "{ \"variables\": { \"i\": { \"value\": 1 } } }";
 			System.out.println(jsonString);
-			 ResponseEntity<String> response = exceptionManagementService.postJsonToExternalApi(externalApiUrl,jsonString);
+			 ResponseEntity<String> response = exceptionManagementServiceImp.postJsonToExternalApi(externalApiUrl,jsonString);
 			if (response.getStatusCode().is2xxSuccessful()) {
 				return ResponseEntity.ok("Exception sent from group to escalation !!!");
 			} else {
@@ -508,13 +508,13 @@ public class ExceptionListController {
 		System.out.println("hi");
 		try {
 			// String externalApiUrl = "https://jsonplaceholder.typicode.com/posts";
-			String processId = exceptionManagementService.getProcessId(exceptionId.get("exceptionId"));
+			String processId = exceptionManagementServiceImp.getProcessId(exceptionId.get("exceptionId"));
 			System.out.println(processId);
-			String taskId = exceptionManagementService.fetchTaskId(processId);
+			String taskId = exceptionManagementServiceImp.fetchTaskId(processId);
 			String externalApiUrl = "http://"+ ipAddress +":8080/engine-rest/task/" + taskId + "/complete";
 			System.out.println("task id :" + taskId);
 			String jsonString =  "{ \"variables\": { \"i\": { \"value\": 3 } } }";
-			 ResponseEntity<String> response = exceptionManagementService.postJsonToExternalApi(externalApiUrl,jsonString);
+			 ResponseEntity<String> response = exceptionManagementServiceImp.postJsonToExternalApi(externalApiUrl,jsonString);
 			if (response.getStatusCode().is2xxSuccessful()) {
 				return ResponseEntity.ok("Exception sent from group to escalation !!!");
 			} else {
@@ -532,7 +532,7 @@ public class ExceptionListController {
 	@PostMapping("/updateResolutionCount/{exceptionId}")
     public ResponseEntity<?> updateResolutionCount(@PathVariable String exceptionId, @RequestBody String resolutionCount) {
         try {
-            exceptionManagementService.updateResolutionCount(exceptionId, resolutionCount);
+            exceptionManagementServiceImp.updateResolutionCount(exceptionId, resolutionCount);
             return ResponseEntity.ok("Attribute updated successfully");
         } catch (Exception e) {
             e.printStackTrace();

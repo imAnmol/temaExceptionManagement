@@ -10,11 +10,11 @@ import com.mongodb.client.MongoClients;
 
 @Configuration
 @EnableMongoRepositories(
-	    basePackages = "com.osttra.repository.database1", // Specify the package for Database 1 repositories
+	    basePackages = "com.osttra.repository.sourceExceptionDatabase", // Specify the package for Database 1 repositories
 	    mongoTemplateRef = "mongoTemplate1"
 	    )
 
-public class Database1Config {
+public class SourceDatabaseConfig {
 
 	 @Primary
 	 @Bean(name = "mongoTemplate1")

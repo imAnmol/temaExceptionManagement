@@ -16,7 +16,7 @@ import lombok.ToString;
 @ToString
 
 @Document(collection="mongodata")
-public class SourceMongoEntity {
+public class SourceExceptionEntity {
 
     @Id
     private String exceptionId;
