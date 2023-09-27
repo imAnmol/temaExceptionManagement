@@ -32,7 +32,7 @@ public class TemaMongoEntity {
 	    private String createdAt;
 	    private String updatedBy;
 	    private String updatedAt;
-	    private String assign = "ASSIGN";
+	    private String assign = "Assign";
 	    private String processId;
 	    private String resolutionCount;
 }
